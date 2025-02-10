@@ -17,26 +17,76 @@ public class Player : MonoBehaviour
     
     [SerializeField] private Transform _laserContainer;  // aka Missile Pool
     private MissilePooler _missilePooler; // Reference to the MissilePooler script
-    private bool _IsFiring = false;
+    private bool _IsFiring = false, _isGamePaused = false, _isGameOver = true;
     [SerializeField]
     private float _laserCoolDown = 0.25f;  // Time between laser shots
     private float _laserTimer = 0.0f;
     
-    private bool _gameOver = false;
-    private Camera _camera;
+    private Material _playerMaterial;    private void OnEnable()
+    {
+        // Subscribe to the GameManager events
+        GameManager.GameStart += OnGameStart;
+        GameManager.GamePause += OnGamePause;
+        GameManager.GameResume += OnGameResume;
+        GameManager.GameOver += OnGameOver;
+        GameManager.GameWon += OnGameWon;
+    }
+
+    private void OnDisable()
+    {
+        // Unsubscribe from the events to avoid memory leaks
+        GameManager.GameStart -= OnGameStart;
+        GameManager.GamePause -= OnGamePause;
+        GameManager.GameResume -= OnGameResume;
+        GameManager.GameOver -= OnGameOver;
+        GameManager.GameWon -= OnGameWon;
+    }
+
+    // Event handlers
+    private void OnGameStart()
+    {
+        _isGameOver = false;
+    }
+
+    private void OnGamePause()
+    {
+        _isGamePaused = true;
+        var strikes = GameManager.Instance.GetStrikes();
+        _playerMaterial.color = Color.Lerp(Color.white, Color.red, (float)(3 - strikes) / 3.0f);
+        
+    }
+
+    private void OnGameResume()
+    {
+        _isGamePaused = false;
+        var strikes = GameManager.Instance.GetStrikes();
+        _playerMaterial.color = Color.Lerp(Color.white, Color.red, (float)(3 - strikes) / 3.0f);
+    }
+
+    private void OnGameOver()
+    {
+        _isGameOver = true;
+        _playerMaterial.color = Color.red;
+    }
+
+    private void OnGameWon()
+    {
+        _isGameOver = true;
+        _playerMaterial.color = Color.white;
+    }
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         _missilePooler = _laserContainer.GetComponent<MissilePooler>();
-        _camera = Camera.main;
+        _playerMaterial = GetComponentInChildren<MeshRenderer>().material;
     }
     
 
     // Update is called once per frame
     void Update()
     {
-        if (!_gameOver)
+        if (!_isGameOver && !_isGamePaused)
         {
             CalucateMovement();
             Bounds();
@@ -101,22 +151,17 @@ public class Player : MonoBehaviour
         else if (position.x > _rightBound)
             position.x = _leftBound;
         
-        /* public static float Clamp(float value, float min, float max) {
-             if ((double) value < (double) min)
-               value = min;
-             else if ((double) value > (double) max)
-               value = max;
-             return value; } */
-        
         transform.position = position;
     }
      
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("EnemyMissile"))
+        if (other.CompareTag("EnemyMissile") && !_isGameOver)
         {
-            _missilePooler.ReturnEnemyMissileToPool(other.gameObject);
+            other.GetComponent<EnemyLaser>().DestroyMissile();
             GameManager.Instance.DecrementStrikes();
+            var strikes = GameManager.Instance.GetStrikes();
+            _playerMaterial.color = Color.Lerp(Color.white, Color.red, (float)(3 - strikes) / 3.0f);
         }
     }
 }

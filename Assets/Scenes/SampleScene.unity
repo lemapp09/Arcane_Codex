@@ -292,6 +292,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 157bd50c85e8f405d98dd8d76053eff3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lengthOfFade: 2
   audioMixer: {fileID: 24100000, guid: 54cab220ab12549eebb607548a402e9f, type: 2}
   sfxAudioClips:
   - {fileID: 8300000, guid: 96069c9e17ac34dd6a8080b287b570c9, type: 3}
@@ -648,6 +649,7 @@ MonoBehaviour:
   _missleCountInitial: 100
   _livesInitial: 3
   _strikesInitial: 3
+  _levelsToWin: 5
   _enemyPrefab: {fileID: 3235086659454819218, guid: 4a3672eae6a0542918d95baabcc1fcf6, type: 3}
   missilePooler: {fileID: 916653191}
 --- !u!4 &336699250

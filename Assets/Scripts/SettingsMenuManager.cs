@@ -47,9 +47,11 @@ public class SettingsMenuManager : MonoBehaviour
             settingsMenuCloseButton.UnregisterCallback<ClickEvent>(OnSettingsMenuCloseButtonClicked);
             root.Remove(settingsMenu);
             toggleSettingsMenu = false;
+            GameManager.Instance.ResumeGame();
         }
         else
         {
+            GameManager.Instance.PauseGame();
             root.Add(settingsMenu);
             settingsPanel = root.Q<VisualElement>("settingsMenuPanel");
         
