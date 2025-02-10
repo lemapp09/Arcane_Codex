@@ -1,0 +1,30 @@
+:root {
+    /* Project's Color Palette*/
+    --RussianViolet: #32174D;  /* Russian Violet */
+    --MyrtleGreen: #324D17; /* Myrtel Green */
+    --Oxblood: #480000; /* Oxblood */
+    --HarvestGold: #D68F02; /* Harvest Gold */
+    --MysticRed: #FF5500; /* Mustic Red */
+    --IndigoDye: #004668; /* Indigo Dye */
+}
+
+VisualElement {
+    /* Variable Usage
+    background-color: var(--HarvestGold);
+    color: var(--RussianViolet); */
+}
+
+
+.volume-control {
+    padding: 10px;
+    margin: 10px;
+}
+
+.volume-label {
+    font-size: 20px;
+    color: white;
+}
+
+#volumeSlider {
+    width: 200px; /* Adjust width as needed */
+}

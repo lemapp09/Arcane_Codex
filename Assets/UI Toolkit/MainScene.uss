@@ -1,0 +1,15 @@
+VisualElement {
+}
+
+.TitleText {
+    width: 25%;
+    height: 100%;
+    -unity-font-definition: resource('Fonts/soloisttitle1 SDF');
+    color: rgb(197, 178, 38);
+    -unity-text-outline-color: rgb(0, 0, 0);
+    -unity-text-outline-width: 0.3px;
+    margin-top: 0;
+    margin-right: 15px;
+    margin-bottom: 0;
+    margin-left: 15px;
+}
