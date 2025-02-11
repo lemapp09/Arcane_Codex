@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 // https://github.com/ThomFoxx-GDHQ/ArcaneCodexSpaceShooter.git
@@ -21,6 +22,7 @@ public class Player : MonoBehaviour
     [SerializeField]
     private float _laserCoolDown = 0.25f;  // Time between laser shots
     private float _laserTimer = 0.0f;
+    private int _missileCount = 1;
     
     private Material _playerMaterial;    private void OnEnable()
     {
@@ -30,6 +32,8 @@ public class Player : MonoBehaviour
         GameManager.GameResume += OnGameResume;
         GameManager.GameOver += OnGameOver;
         GameManager.GameWon += OnGameWon;
+        GameManager.PlayerChangeSpeed += OnPlayerChangeSpeed;
+        GameManager.PlayerFiresMoreMissiles += OnPlayerFiresMoreMissiles;
     }
 
     private void OnDisable()
@@ -40,6 +44,8 @@ public class Player : MonoBehaviour
         GameManager.GameResume -= OnGameResume;
         GameManager.GameOver -= OnGameOver;
         GameManager.GameWon -= OnGameWon;
+        GameManager.PlayerChangeSpeed -= OnPlayerChangeSpeed;
+        GameManager.PlayerFiresMoreMissiles += OnPlayerFiresMoreMissiles;
     }
 
     // Event handlers
@@ -66,7 +72,7 @@ public class Player : MonoBehaviour
     private void OnGameOver()
     {
         _isGameOver = true;
-        _playerMaterial.color = Color.red;
+        _playerMaterial.color = Color.white;
     }
 
     private void OnGameWon()
@@ -116,13 +122,58 @@ public class Player : MonoBehaviour
 
     private void FireMissile()
     {
+        GameObject[] firingMissile = new GameObject[4];
+        switch (_missileCount)
+        {
+            case 1:
+                GetMissile();
+                break;
+            case 2:
+                firingMissile[0] = GetMissile();
+                firingMissile[1] = GetMissile();
+                firingMissile[0].transform.Rotate(Vector3.left, 5.0f);
+                firingMissile[0].transform.Translate(-0.01f,0,0);
+                firingMissile[1].transform.Rotate(Vector3.right, 5.0f);
+                firingMissile[1].transform.Translate(0.01f,0,0);
+                break;
+            case 3:
+                firingMissile[0] = GetMissile();
+                firingMissile[1] = GetMissile();
+                firingMissile[2] = GetMissile();
+                firingMissile[0].transform.Rotate(Vector3.left, 5.0f);
+                firingMissile[0].transform.Translate(-0.01f,0,0);
+                firingMissile[2].transform.Rotate(Vector3.right, 5.0f);
+                firingMissile[2].transform.Translate(0.01f,0,0);
+                break;
+            case 4:
+                firingMissile[0] = GetMissile();
+                firingMissile[1] = GetMissile();
+                firingMissile[2] = GetMissile();
+                firingMissile[3] = GetMissile();
+                firingMissile[0].transform.Rotate(Vector3.left, 10.0f);
+                firingMissile[0].transform.Translate(-0.02f,0,0);
+                firingMissile[1].transform.Rotate(Vector3.left, 5.0f);
+                firingMissile[1].transform.Translate(-0.01f,0,0);
+                firingMissile[2].transform.Rotate(Vector3.right, 5.0f);
+                firingMissile[2].transform.Translate(0.01f,0,0);
+                firingMissile[3].transform.Rotate(Vector3.right, 10.0f);
+                firingMissile[3].transform.Translate(0.02f,0,0);
+                break;
+            default:
+                break;
+        }
+        AudioManager.Instance.PlaySFX(0);
+    }
+
+    private GameObject GetMissile()
+    {
         // Get a missile from the pool
         GameObject missile = _missilePooler.GetMissile();
         missile.transform.position = this.transform.position; // Position it at the spawn point
         missile.transform.parent = _laserContainer; // Set the parent to the container
         missile.SetActive(true); // Activate the missile
         GameManager.Instance.DecrementMissileCount();
-        AudioManager.Instance.PlaySFX(0);
+        return missile;
     }
 
     private void CalucateMovement()
@@ -163,5 +214,30 @@ public class Player : MonoBehaviour
             var strikes = GameManager.Instance.GetStrikes();
             _playerMaterial.color = Color.Lerp(Color.white, Color.red, (float)(3 - strikes) / 3.0f);
         }
+    }
+
+    private void OnPlayerChangeSpeed()
+    {
+        StartCoroutine(SpeedUpDelay());
+    }
+
+    private IEnumerator SpeedUpDelay()
+    {
+        _speed += 3.0f;
+        yield return new WaitForSeconds(5.0f);
+        _speed -= 3.0f;
+    }
+
+    private void OnPlayerFiresMoreMissiles(int missileCount)
+    {
+        StartCoroutine(FireMoreMissilesDelay(missileCount));
+    }
+
+    private IEnumerator FireMoreMissilesDelay( int missileCount)
+    {
+        _missileCount = missileCount;
+        yield return new WaitForSeconds(5.0f);
+        _missileCount = 1;
+        yield return null;
     }
 }

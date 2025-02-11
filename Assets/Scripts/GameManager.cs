@@ -13,11 +13,11 @@ public class GameManager : MonoBehaviour
     private int _levelsToWin = 5;
     [SerializeField]
     private GameObject _enemyPrefab;
+    [SerializeField]
+    private MissilePooler _missilePooler;
 
     private int _enemyCount = 1, _enemyIndexCount, _missileCount, _livesCount, _strikes, _score = 0, _levelCount = 1;
     private bool  _isGamePaused = false, _isGameOver = false;
-    
-    [SerializeField] private MissilePooler missilePooler; // Reference to the MissilePooler
     
     // Define the events
     public static event Action GameStart;
@@ -25,6 +25,8 @@ public class GameManager : MonoBehaviour
     public static event Action GameResume;
     public static event Action GameOver;
     public static event Action GameWon;
+    public static event Action PlayerChangeSpeed;
+    public static event Action<int> PlayerFiresMoreMissiles;
     
     // GameManager is a singleton
     public static GameManager Instance { get; private set; }
@@ -47,9 +49,9 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.SetLevelCount(_levelCount);
         UIManager.Instance.SetLivesCount(_livesCount);
         UIManager.Instance.SetScoreCount(_score);
-        StartCoroutine( AddEnemies(1)); // Level 1 has 1 enemy
+        StartCoroutine( AddEnemiesAndCoins(1)); // Level 1 has 1 enemy
     }
-    // Call this method to pause the game
+    
     public void PauseGame()
     {
         if (_isGameOver) return; // Prevent pausing after game over
@@ -61,8 +63,7 @@ public class GameManager : MonoBehaviour
         GamePause?.Invoke();
         _isGamePaused = true;
     }
-
-    // Call this method to resume the game
+    
     public void ResumeGame()
     {
         if (_isGameOver) return; // Prevent resuming after game over
@@ -88,16 +89,21 @@ public class GameManager : MonoBehaviour
     {
         if (!_isGameOver && !_isGamePaused)
         {
-            _livesCount--;
-            UIManager.Instance.SetLivesCount(_livesCount);
-            if (_livesCount == 0)
-            {
-                _isGameOver = true;
-                Time.timeScale = 0; // Stop game time when paused
-                GameOver?.Invoke();
-                _isGameOver = true;
-                // Broadcast event that game is over
-            }
+            IsGameOver();
+        }
+    }
+
+    private void IsGameOver()
+    {
+        _livesCount--;
+        UIManager.Instance.SetLivesCount(_livesCount);
+        if (_livesCount == 0)
+        {
+            _isGameOver = true;
+            Time.timeScale = 0; // Stop game time when paused
+            GameOver?.Invoke();
+            _isGameOver = true;
+            // Broadcast event that game is over
         }
     }
 
@@ -115,7 +121,7 @@ public class GameManager : MonoBehaviour
     {
         if (!_isGameOver || !_isGamePaused) // Return enemy to game if game is still active
         {
-            StartCoroutine( AddEnemies(1));
+            StartCoroutine( AddEnemiesAndCoins(1));
         }
     }
 
@@ -164,11 +170,11 @@ public class GameManager : MonoBehaviour
         GameResume.Invoke();
         if (_levelCount <= _levelsToWin)
         {
-            StartCoroutine(AddEnemies(_levelCount));
+            StartCoroutine(AddEnemiesAndCoins(_levelCount));
         }
     }
 
-    private IEnumerator AddEnemies(int numberOfEnemies)
+    private IEnumerator AddEnemiesAndCoins(int numberOfEnemies)
     {
         for (int i = 0; i < numberOfEnemies; i++)
         {
@@ -179,7 +185,16 @@ public class GameManager : MonoBehaviour
             enemy.transform.localScale = enemy.transform.localScale * scaleFactor;
             enemy.transform.name = "Enemy " + _enemyIndexCount.ToString().PadLeft(4, '0');
             _enemyIndexCount++;
-            enemy.GetComponent<Enemy>().SetMissilePooler(missilePooler);
+            enemy.GetComponent<Enemy>().SetMissilePooler(_missilePooler);
+            yield return new WaitForSeconds(1f);
+            
+            // Get a coin from the pool
+            GameObject coin = _missilePooler.GetCoin();
+            coin.transform.position = new Vector3(Random.Range(-10, 10), 7, 0); // Position it at the spawn point
+            // Randomly assign a coin type to the coin
+            CoinType randomCoinType = (CoinType)Random.Range(0, 10);
+            coin.GetComponent<CoinSpin>().SetCoinType(randomCoinType);
+            coin.SetActive(true); // Activate the missile
             yield return new WaitForSeconds(1f);
         }
     }
@@ -187,6 +202,55 @@ public class GameManager : MonoBehaviour
     public int GetStrikes()
     {
         return _strikes;
+    }
+
+    public void CoinWon(CoinType coinType)
+    {
+        switch (coinType)
+        {
+            case CoinType.Add1Life:
+                _livesCount++;
+                UIManager.Instance.SetLivesCount(_levelCount);
+                break;
+            case CoinType.Remove1Life:
+                IsGameOver();
+                break;
+            case CoinType.Add25Missiles:
+                _missileCount += 25;
+                UIManager.Instance.SetMissileCount(_missileCount);
+                break;
+            case CoinType.Remove25Missiles:
+                _missileCount -= 25;
+                UIManager.Instance.SetMissileCount(_missileCount);
+                break;
+            case CoinType.Add100Score:
+                _score += 100;
+                UIManager.Instance.SetScoreCount(_score);
+                break;
+            case CoinType.Remove100Score:
+                _score += 100;
+                if (_score < 0)
+                {
+                    _score = 0;
+                }
+                UIManager.Instance.SetScoreCount(_score);
+                break;
+            case CoinType.AddTempSpeed:
+                PlayerChangeSpeed?.Invoke();
+                break;
+            case CoinType.AddDoubleMissiles:
+                PlayerFiresMoreMissiles?.Invoke(2);
+                break;
+            case CoinType.AddTripleMissiles:
+                PlayerFiresMoreMissiles?.Invoke(3);
+                break;
+            case CoinType.AddQuadrupleMissiles:
+                PlayerFiresMoreMissiles?.Invoke(4);
+                break;
+
+            default:
+                break;
+        }
     }
 }
 

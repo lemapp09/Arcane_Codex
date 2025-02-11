@@ -651,7 +651,7 @@ MonoBehaviour:
   _strikesInitial: 3
   _levelsToWin: 5
   _enemyPrefab: {fileID: 3235086659454819218, guid: 4a3672eae6a0542918d95baabcc1fcf6, type: 3}
-  missilePooler: {fileID: 916653191}
+  _missilePooler: {fileID: 916653191}
 --- !u!4 &336699250
 Transform:
   m_ObjectHideFlags: 0
@@ -1437,6 +1437,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   missilePrefab: {fileID: 3747980533118204129, guid: eaf2aa6fb1c514e64b52cd615f02dc74, type: 3}
   enemyMissilePrefab: {fileID: 3747980533118204129, guid: e8ce7518aea334431b4eca6f0445ffef, type: 3}
+  coinPrefabs:
+  - {fileID: 5956119376382683874, guid: 2cf5540f8bf8c4fd6ab1ea2794f6d7b5, type: 3}
+  - {fileID: 6020553431471182288, guid: 581d616ce129b4643821c0eeb6a19935, type: 3}
+  - {fileID: 6949217463515559026, guid: dc9feedac06224130a165f94636c4cd5, type: 3}
+  - {fileID: 746005100313038928, guid: 9ebf0ffc8524e4967bccb9132d748c37, type: 3}
+  - {fileID: 4229276532442567949, guid: e8cc207273b1747cb8418219f5ee0e19, type: 3}
+  - {fileID: 8767028404220517430, guid: 12fbf66db871a4b88adc5a6a5d66d6c5, type: 3}
+  - {fileID: 2245535432673279880, guid: 39378cc7ee4dd4f84be2b7da8505c7a1, type: 3}
+  - {fileID: 5166195595173096671, guid: 22d398533dc1e428693a4c1c717aaecf, type: 3}
+  - {fileID: 3568369964437305885, guid: 629e093042a554113ad6b3c7a3e66b3b, type: 3}
   poolSize: 100
   enemyPoolSize: 25
 --- !u!1 &951268060

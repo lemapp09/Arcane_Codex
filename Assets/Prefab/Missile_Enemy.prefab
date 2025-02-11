@@ -162,9 +162,6 @@ PrefabInstance:
       addedObject: {fileID: 8207108509414980118}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fad79d481178343929565b52ba67688b, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1709000499745411512}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fad79d481178343929565b52ba67688b, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 5944676843849858054}
   m_SourcePrefab: {fileID: 100100000, guid: fad79d481178343929565b52ba67688b, type: 3}
 --- !u!1 &3747980533118204129 stripped
@@ -195,33 +192,6 @@ CapsuleCollider:
   m_Height: 0.019983077
   m_Direction: 1
   m_Center: {x: 0.000010154908, y: 0.000020290257, z: -0.000010235001}
---- !u!54 &1709000499745411512
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3747980533118204129}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!114 &5944676843849858054
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -235,14 +205,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 5
-  _explosions:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
 --- !u!4 &4559983423160492635 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: fad79d481178343929565b52ba67688b, type: 3}

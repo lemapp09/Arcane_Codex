@@ -6,13 +6,16 @@ public class MissilePooler : MonoBehaviour
     [SerializeField]
     private GameObject missilePrefab; // Reference to the missile prefab
     [SerializeField]
-    private GameObject enemyMissilePrefab; // The initial size of the missile pool
+    private GameObject enemyMissilePrefab; // Reference to the enemy missile prefab
+    [SerializeField]
+    private GameObject[] coinPrefabs; // Reference to the coin prefabs
     [SerializeField]
     private int poolSize = 100; // The initial size of the missile pool
     [SerializeField]
     private int enemyPoolSize = 25; // The initial size of the enemy missile pool
     private Queue<GameObject> missilePool = new Queue<GameObject>();
     private Queue<GameObject> enemyMissilePool = new Queue<GameObject>();
+    private Queue<GameObject> coinPool = new Queue<GameObject>();
 
     void Start()
     {
@@ -36,6 +39,17 @@ public class MissilePooler : MonoBehaviour
             enemyMissile.SetActive(false); // Deactivate it initially
             enemyMissile.GetComponent<EnemyLaser>().SetMissilePooler(this); // Set the missile pooler
             enemyMissilePool.Enqueue(enemyMissile);
+        }
+        
+        // Preload the pool with coin objects
+        for (int i = 0; i < coinPrefabs.Length; i++)
+        {
+            // Preload the pool with coin objects
+            GameObject coin = Instantiate(coinPrefabs[i], transform);
+            coin.transform.name = "Coin " + i.ToString().PadLeft(3, '0');
+            coin.SetActive(false); // Deactivate it initially
+            coin.GetComponent<CoinSpin>().SetMissilePooler(this); // Set the missile pooler
+            coinPool.Enqueue(coin);
         }
     }
 
@@ -75,17 +89,44 @@ public class MissilePooler : MonoBehaviour
         }
     }
 
+    // Get an enemy missile from the pool
+    public GameObject GetCoin()
+    {
+        if (coinPool.Count > 0)
+        {
+            GameObject coin = coinPool.Dequeue();
+            return coin;
+        }
+        else
+        {
+            // If the pool is empty, you can either expand the pool or return null
+            // Here we're expanding the pool by adding a new coin
+            int i = Random.Range(0, coinPrefabs.Length);
+            GameObject coin = Instantiate(coinPrefabs[i], transform);
+            coin.GetComponent<CoinSpin>().SetMissilePooler(this); // Set the missile pooler
+            return coin;
+        }
+    }
+
     // Return a missile to the pool
     public void ReturnMissileToPool(GameObject missile)
     {
         missile.SetActive(false); // Deactivate the missile when it returns to the pool
+        missile.transform.rotation = Quaternion.Euler(0,0,0); // Reset the position of the missile
         missilePool.Enqueue(missile);
     }
 
     // Return an Enemy missile to the pool
     public void ReturnEnemyMissileToPool(GameObject enemyMissile)
     {
-        enemyMissile.SetActive(false); // Deactivate the missile when it returns to the pool
+        enemyMissile.SetActive(false); // Deactivate the enemy missile when it returns to the pool
         enemyMissilePool.Enqueue(enemyMissile);
+    }
+
+    // Return an Enemy missile to the pool
+    public void ReturnCoinToPool(GameObject coin)
+    {
+        coin.SetActive(false); // Deactivate the coin when it returns to the pool
+        enemyMissilePool.Enqueue(coin);
     }
 }
