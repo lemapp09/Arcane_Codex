@@ -78,6 +78,7 @@ public class CoinSpin : MonoBehaviour
     {
         if (other.CompareTag("PlayerMissile"))
         {
+            AudioManager.Instance.PlaySFX(1);
             GameManager.Instance.CoinWon(_coinType);
             _missilePooler.ReturnCoinToPool(this.gameObject);
         }

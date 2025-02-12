@@ -87,6 +87,7 @@ public class Enemy : MonoBehaviour
         // Get a missile from the pool
         GameObject missile = _missilePooler.GetEnemyMissile();
         missile.transform.position = this.transform.position; // Position it at the spawn point
+        AudioManager.Instance.PlaySFX(2);
         missile.SetActive(true); // Activate the missile
     }
 

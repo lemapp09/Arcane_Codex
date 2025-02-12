@@ -10,18 +10,19 @@ public class Player : MonoBehaviour
     
     private float _horizontalInput, _verticalInput;
     private Vector3 _direction = Vector3.zero;
-    
-    [SerializeField]private float _leftBound = -10.0f;
-    [SerializeField]private float _rightBound = 10.0f;
-    [SerializeField]private float _topBound = 6.0f;
-    [SerializeField]private float _bottomBound = -6.0f;
+
+    [SerializeField] private float _leftBound = -10.0f;
+    [SerializeField] private float _rightBound = 10.0f;
+    [SerializeField] private float _topBound = 6.0f;    
+    [SerializeField] private float _bottomBound = -6.0f;
     
     [SerializeField] private Transform _laserContainer;  // aka Missile Pool
     private MissilePooler _missilePooler; // Reference to the MissilePooler script
-    private bool _IsFiring = false, _isGamePaused = false, _isGameOver = true;
+    private bool _isFiring = false, _isGamePaused = false, _isGameOver = true;
     [SerializeField]
-    private float _laserCoolDown = 0.25f;  // Time between laser shots
-    private float _laserTimer = 0.0f;
+    private float _fireRate = 0f;  // Time between laser shots
+    private Coroutine _fireCoroutine = null;
+    private WaitForSeconds _fireTime;
     private int _missileCount = 1;
     
     private Material _playerMaterial;    private void OnEnable()
@@ -47,48 +48,15 @@ public class Player : MonoBehaviour
         GameManager.PlayerChangeSpeed -= OnPlayerChangeSpeed;
         GameManager.PlayerFiresMoreMissiles += OnPlayerFiresMoreMissiles;
     }
-
-    // Event handlers
-    private void OnGameStart()
-    {
-        _isGameOver = false;
-    }
-
-    private void OnGamePause()
-    {
-        _isGamePaused = true;
-        var strikes = GameManager.Instance.GetStrikes();
-        _playerMaterial.color = Color.Lerp(Color.white, Color.red, (float)(3 - strikes) / 3.0f);
-        
-    }
-
-    private void OnGameResume()
-    {
-        _isGamePaused = false;
-        var strikes = GameManager.Instance.GetStrikes();
-        _playerMaterial.color = Color.Lerp(Color.white, Color.red, (float)(3 - strikes) / 3.0f);
-    }
-
-    private void OnGameOver()
-    {
-        _isGameOver = true;
-        _playerMaterial.color = Color.white;
-    }
-
-    private void OnGameWon()
-    {
-        _isGameOver = true;
-        _playerMaterial.color = Color.white;
-    }
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         _missilePooler = _laserContainer.GetComponent<MissilePooler>();
         _playerMaterial = GetComponentInChildren<MeshRenderer>().material;
+        _fireTime = new WaitForSeconds(_fireRate);
     }
     
-
     // Update is called once per frame
     void Update()
     {
@@ -96,75 +64,62 @@ public class Player : MonoBehaviour
         {
             CalucateMovement();
             Bounds();
-            _laserTimer += Time.deltaTime;
-
-            // Spawn Laser when Space is pressed
-            if (Input.GetKeyDown(KeyCode.Space) && _laserTimer >= _laserCoolDown)
+            
+            //Spawn Laser when hit Space bar
+            if (Input.GetKeyDown(KeyCode.Space) && !_isFiring)
             {
-                _IsFiring = true;
-                _laserTimer = 0.0f;
-                FireMissile();
+                _isFiring = true;
+                _fireCoroutine = StartCoroutine(FireSequence());
             }
-
-            if (Input.GetKey(KeyCode.Space) && _laserTimer >= _laserCoolDown && _IsFiring)
-            {
-                _laserTimer = 0.0f;
-                FireMissile();
-            }
-
             if (Input.GetKeyUp(KeyCode.Space))
             {
-                _IsFiring = false;
-                _laserTimer = 0.0f;
+                _isFiring = false;
+                if (_fireCoroutine != null)
+                {
+                    StopCoroutine(_fireCoroutine);
+                }
             }
+        }
+    }
+
+    private IEnumerator FireSequence()
+    {
+        while (_isFiring && !_isGameOver && !_isGamePaused && _missileCount > 0)
+        {
+            FireMissile();
+            yield return _fireTime;
         }
     }
 
     private void FireMissile()
     {
-        GameObject[] firingMissile = new GameObject[4];
-        switch (_missileCount)
+        GameObject[] firingMissile = new GameObject[Mathf.Min(_missileCount, 4)];
+
+        for (int i = 0; i < _missileCount; i++)
         {
-            case 1:
-                GetMissile();
-                break;
-            case 2:
-                firingMissile[0] = GetMissile();
-                firingMissile[1] = GetMissile();
-                firingMissile[0].transform.Rotate(Vector3.left, 5.0f);
-                firingMissile[0].transform.Translate(-0.01f,0,0);
-                firingMissile[1].transform.Rotate(Vector3.right, 5.0f);
-                firingMissile[1].transform.Translate(0.01f,0,0);
-                break;
-            case 3:
-                firingMissile[0] = GetMissile();
-                firingMissile[1] = GetMissile();
-                firingMissile[2] = GetMissile();
-                firingMissile[0].transform.Rotate(Vector3.left, 5.0f);
-                firingMissile[0].transform.Translate(-0.01f,0,0);
-                firingMissile[2].transform.Rotate(Vector3.right, 5.0f);
-                firingMissile[2].transform.Translate(0.01f,0,0);
-                break;
-            case 4:
-                firingMissile[0] = GetMissile();
-                firingMissile[1] = GetMissile();
-                firingMissile[2] = GetMissile();
-                firingMissile[3] = GetMissile();
-                firingMissile[0].transform.Rotate(Vector3.left, 10.0f);
-                firingMissile[0].transform.Translate(-0.02f,0,0);
-                firingMissile[1].transform.Rotate(Vector3.left, 5.0f);
-                firingMissile[1].transform.Translate(-0.01f,0,0);
-                firingMissile[2].transform.Rotate(Vector3.right, 5.0f);
-                firingMissile[2].transform.Translate(0.01f,0,0);
-                firingMissile[3].transform.Rotate(Vector3.right, 10.0f);
-                firingMissile[3].transform.Translate(0.02f,0,0);
-                break;
-            default:
-                break;
+            firingMissile[i] = GetMissile();
+            float rotation = i < _missileCount / 2 ? 5.0f : 10.0f; // Adjust based on missile index
+            float translation = i < _missileCount / 2 ? -0.01f : 0.01f; // Adjust based on missile index
+
+
+            if (i == 1)
+            {
+                firingMissile[i].transform.Translate(translation, 0, 0);
+            }
+            else
+            if (i == 2)
+            {
+                firingMissile[i].transform.Translate(translation, 0, 0);
+            }
+            else
+            {
+                firingMissile[i].transform.Translate(-translation * 2, 0, 0);
+            }
         }
+
         AudioManager.Instance.PlaySFX(0);
     }
-
+    
     private GameObject GetMissile()
     {
         // Get a missile from the pool
@@ -239,5 +194,38 @@ public class Player : MonoBehaviour
         yield return new WaitForSeconds(5.0f);
         _missileCount = 1;
         yield return null;
+    }
+
+    // Event handlers
+    private void OnGameStart()
+    {
+        _isGameOver = false;
+    }
+
+    private void OnGamePause()
+    {
+        _isGamePaused = true;
+        var strikes = GameManager.Instance.GetStrikes();
+        _playerMaterial.color = Color.Lerp(Color.white, Color.red, (float)(3 - strikes) / 3.0f);
+        
+    }
+
+    private void OnGameResume()
+    {
+        _isGamePaused = false;
+        var strikes = GameManager.Instance.GetStrikes();
+        _playerMaterial.color = Color.Lerp(Color.white, Color.red, (float)(3 - strikes) / 3.0f);
+    }
+
+    private void OnGameOver()
+    {
+        _isGameOver = true;
+        _playerMaterial.color = Color.white;
+    }
+
+    private void OnGameWon()
+    {
+        _isGameOver = true;
+        _playerMaterial.color = Color.white;
     }
 }
